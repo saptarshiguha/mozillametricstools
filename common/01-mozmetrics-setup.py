@@ -7,3 +7,4 @@ bucket = "telemetry-parquet"
 prefix = "main_summary/v2"
 mainpingspq = sqlContext.read.load("s3://{}/{}".format(bucket, prefix), "parquet")
 
+import mozillametricstools as mmt
