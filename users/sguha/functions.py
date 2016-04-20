@@ -1,8 +1,3 @@
-def saveObject(s):
-    import json
-    with open('/tmp/pyobject.json', 'w') as outfile:
-        json.dump(s, outfile)
-        
 
 def computeCountsOfVar(df,whatvar):
     x = df.groupBy(whatvar).count().collect()

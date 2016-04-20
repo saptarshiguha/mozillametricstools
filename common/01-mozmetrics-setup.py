@@ -7,4 +7,10 @@ bucket = "telemetry-parquet"
 prefix = "main_summary/v2"
 mainpingspq = sqlContext.read.load("s3://{}/{}".format(bucket, prefix), "parquet")
 
+def saveObject(s):
+    import json
+    with open('/tmp/pyobject.json', 'w') as outfile:
+        json.dump(s, outfile)
+        
+
 import mozillametricstools as mmt
