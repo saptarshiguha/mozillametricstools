@@ -5,6 +5,18 @@ def computeCountsOfVar(df,whatvar):
     x = sorted(x, key=lambda s: -s['count'])
     return(x)
 
+def dateToUnixNanoSec(dt,format="%Y-%m-%d"):
+    import time, datetime
+    d = datetime.datetime.fromtimestamp(time.mktime( time.strptime(dt,format)))
+    epoch = datetime.datetime.utcfromtimestamp(0)
+    return (d - epoch).total_seconds() * 1000000000
+    
+def UnixNanoSecToDT(s):
+    from datetime import datetime
+    dt = datetime.fromtimestamp(s // 1000000000)
+    return (dt.strftime('%Y-%m-%d '),dt.strftime('%Y-%m-%d %H:%M:%S'))
+
+
 
 # ## Example Usage
 # mpqs = mainpingspq.sample(False,0.2)
