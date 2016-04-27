@@ -10,4 +10,4 @@ if $IS_MASTER; then
 fi
 
 ## Copy the ipython startup files
-cp ~/mozillametricstools/common/01-mozmetrics-setup.py ~/.ipython/profile_default/startup/
+cp ~/mozillametricstools/01-mozmetrics-setup.py ~/.ipython/profile_default/startup/
