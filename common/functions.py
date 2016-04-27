@@ -15,8 +15,7 @@ def latest_longitudinal_path():
     return longitudinal_basepath+value
 
 def latest_executive_summary():
-    ## use boto,
-    ## conn = boto.connect_s3(host="s3-us-west-2.amazonaws.com")
+    ## see https://mana.mozilla.org/wiki/display/CLOUDSERVICES/Executive+Summary+Schema
     import subprocess,re,operator
     exec_basepath = "s3://telemetry-parquet/executive_stream/v3/"
     p = subprocess.Popen("aws s3 ls "+exec_basepath,shell=True, stdout=subprocess.PIPE).stdout.readlines()
