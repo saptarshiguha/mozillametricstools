@@ -7,7 +7,8 @@ from pyspark.sql.functions import *
 bucket = "telemetry-parquet"
 prefix = "main_summary/v2"
 mainpingspq = sqlContext.read.load("s3://{}/{}".format(bucket, prefix), "parquet")
-
+print("main_summary is available as the DataFrame caled mainpingspq")
+print("Save your python objects using saveObject(object)")
 
 
 def saveObject(s):
