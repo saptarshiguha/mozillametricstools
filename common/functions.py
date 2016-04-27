@@ -30,5 +30,4 @@ def latest_executive_summary():
     value = __builtin__.max(b)
     return exec_basepath+value
 
-submission_date_s3=20160410/
 
