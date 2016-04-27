@@ -7,7 +7,7 @@ fi
 if $IS_MASTER; then
     ## only runs on master
   git clone https://github.com/saptarshiguha/mozillametricstools   
-fi
+fi 
 
 ## Copy the ipython startup files
 cp ~/mozillametricstools/01-mozmetrics-setup.py ~/.ipython/profile_default/startup/
