@@ -1,3 +1,5 @@
+import datetime, time
+
 def latest_longitudinal_path():
     ## use boto,
     ## conn = boto.connect_s3(host="s3-us-west-2.amazonaws.com")
@@ -29,4 +31,23 @@ def latest_executive_summary():
     value = max(b)
     return exec_basepath+value
 
+
+
+def dateRangeFromTo(start, stop=None, by=None, length=None):
+    start1 = datetime.datetime.fromtimestamp(time.mktime( time.strptime(start,"%Y-%m-%d")))
+    container = []
+    if by:
+        by = by
+    else:
+        by = 1
+    if stop:
+        stop1 = datetime.datetime.fromtimestamp(time.mktime( time.strptime(stop,"%Y-%m-%d")))
+        x = start1
+        while x < stop1:
+            container.append( x.strftime("%Y-%m-%d"))
+            x = x + datetime.timedelta(days=by)
+    elif length:
+        for x in range(0, length):
+            container.append(( start1+datetime.timedelta(days = x*by)).strftime("%Y-%m-%d"))
+    return container
 
