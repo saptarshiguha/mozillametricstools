@@ -7,9 +7,13 @@ import pyspark.sql.functions as sqlfunctions
 bucket = "telemetry-parquet"
 prefix = "main_summary/v2"
 mainpingspq = sqlContext.read.load("s3://{}/{}".format(bucket, prefix), "parquet")
-print("main_summary is available as the DataFrame caled mainpingspq")
-print("Save your python objects using saveObject(object)")
-print("View more at: https://github.com/saptarshiguha/mozillametricstools")
+
+print("-------------------------------------------------------------------------------")
+print("1. main_summary is available as the DataFrame caled mainpingspq")
+print("2. Save your python objects using saveObject(object), load in r via aswsobj")
+print("3. import mozillametricstools !")
+print("\nView more at: https://github.com/saptarshiguha/mozillametricstools")
+print("---------------------------------------------------------------------------------")
 
 
 def saveObject(s):
@@ -18,4 +22,4 @@ def saveObject(s):
         json.dump(s, outfile)
         
 
-import mozillametricstools as mmt
+
