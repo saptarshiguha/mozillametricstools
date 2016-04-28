@@ -11,7 +11,7 @@ def latest_longitudinal_path():
             return '00000000'
     re1 = re.compile(r""" +PRE (v\d{8})""",0)
     b = [g(re1.match(s)) for s  in p]
-    value = __builtin__.max(b)
+    value = max(b)
     return longitudinal_basepath+value
 
 def latest_executive_summary():
@@ -26,7 +26,7 @@ def latest_executive_summary():
             return '00000000'
     re1 = re.compile(r""" +PRE (submission_date_s3=\d{8})""",0)
     b = [g(re1.match(s)) for s  in p]
-    value = __builtin__.max(b)
+    value = max(b)
     return exec_basepath+value
 
 
