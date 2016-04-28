@@ -9,6 +9,7 @@ prefix = "main_summary/v2"
 mainpingspq = sqlContext.read.load("s3://{}/{}".format(bucket, prefix), "parquet")
 print("main_summary is available as the DataFrame caled mainpingspq")
 print("Save your python objects using saveObject(object)")
+print("View more at: https://github.com/saptarshiguha/mozillametricstools")
 
 
 def saveObject(s):
