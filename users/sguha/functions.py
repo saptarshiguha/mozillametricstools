@@ -1,4 +1,4 @@
-sguhafolder = "s3://telemetry-test-bucket/sguhatmp/"
+sguhafolder = "s3://mozilla-metrics/user/sguha/tmp"
 
 def computeCountsOfVar(df,whatvar):
     x = df.groupBy(whatvar).count().collect()
