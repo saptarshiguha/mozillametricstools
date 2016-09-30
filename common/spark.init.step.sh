@@ -9,5 +9,7 @@ if $IS_MASTER; then
   git clone https://github.com/saptarshiguha/mozillametricstools   
 fi 
 
+pip install feather-format
 ## Copy the ipython startup files
+
 cp ~/mozillametricstools/01-mozmetrics-setup.py ~/.ipython/profile_default/startup/
