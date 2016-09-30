@@ -9,6 +9,7 @@ if $IS_MASTER; then
   git clone https://github.com/saptarshiguha/mozillametricstools   
 fi 
 
+pip install py4j --upgrade
 pip install feather-format
 ## Copy the ipython startup files
 
