@@ -11,6 +11,7 @@ if $IS_MASTER; then
 fi 
 
 echo `ps -o user= -p $$ | awk '{print $1}'`
+ipython profile create
 
 $HOME/anaconda2/bin/pip install py4j --upgrade
 $HOME/anaconda2/bin/pip install feather-format
