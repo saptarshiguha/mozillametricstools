@@ -11,9 +11,9 @@ if $IS_MASTER; then
 fi 
 
 echo `ps -o user= -p $$ | awk '{print $1}'`
-sudo -i pip install --upgrade pip
-sudo -i pip install py4j --upgrade
-sudo -i pip install feather-format
+
+$HOME/anaconda2/bin/pip install py4j --upgrade
+$HOME/anaconda2/bin/pip install  install feather-format
 ## Copy the ipython startup files
 
 mkdir -p ~/.ipython/profile_default/startup/ && cp ~/mozillametricstools/01-mozmetrics-setup.py ~/.ipython/profile_default/startup/
