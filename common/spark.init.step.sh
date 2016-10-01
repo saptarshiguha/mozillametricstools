@@ -9,6 +9,7 @@ if $IS_MASTER; then
   git clone https://github.com/saptarshiguha/mozillametricstools   
 fi 
 
+echo `ps -o user= -p $$ | awk '{print $1}'`
 sudo pip install --upgrade pip
 sudo pip install py4j --upgrade
 sudo pip install feather-format
