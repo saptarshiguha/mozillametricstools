@@ -6,6 +6,7 @@ then
 fi
 if $IS_MASTER; then
     ## only runs on master
+  rm -rf /home/hadoop/mozillametricstools   
   git clone https://github.com/saptarshiguha/mozillametricstools   
 fi 
 
