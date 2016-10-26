@@ -13,7 +13,7 @@ import pyspark.sql.functions as sqlfunctions
 
 
 bucket = "telemetry-parquet"
-prefix = "main_summary/v2"
+prefix = "main_summary/v3"
 mainpingspq = sqlContext.read.load("s3://{}/{}".format(bucket, prefix), "parquet")
 
 print("-------------------------------------------------------------------------------")
