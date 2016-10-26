@@ -1,8 +1,16 @@
+import findspark
+findspark.init()
+import pyspark
+sc = pyspark.SparkContext(appName="myAppName")
+sqlContext = pyspark.sql.SQLContext(sc)
+
 import os, sys, inspect
 sys.path.insert(0, "/home/hadoop/")
 from pyspark.sql import SQLContext
 from pyspark.sql.types import *
 import pyspark.sql.functions as sqlfunctions
+
+
 
 bucket = "telemetry-parquet"
 prefix = "main_summary/v2"
