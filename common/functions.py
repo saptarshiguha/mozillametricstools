@@ -14,7 +14,7 @@ def latest_longitudinal_path():
     re1 = re.compile(r""" +PRE (v\d{8})""",0)
     b = [g(re1.match(s)) for s  in p]
     value = max(b)
-    return longitudinal_basepath+value
+    return (longitudinal_basepath+value,b)
 
 def latest_executive_summary():
     ## see https://mana.mozilla.org/wiki/display/CLOUDSERVICES/Executive+Summary+Schema
