@@ -14,7 +14,7 @@ import pyspark.sql.functions as sqlfunctions
 
 bucket = "telemetry-parquet"
 prefix = "main_summary/v3"
-printf(' mainpingspq = sqlContext.read.load("s3://{}/{}".format(bucket, prefix), "parquet") ')
+print(' mainpingspq = sqlContext.read.load("s3://{}/{}".format(bucket, prefix), "parquet") ')
 
 print("-------------------------------------------------------------------------------")
 print("1. main_summary can be made available as the DataFrame caled mainpingspq")
