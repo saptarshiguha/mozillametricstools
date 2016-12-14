@@ -14,10 +14,10 @@ import pyspark.sql.functions as sqlfunctions
 
 bucket = "telemetry-parquet"
 prefix = "main_summary/v3"
-mainpingspq = sqlContext.read.load("s3://{}/{}".format(bucket, prefix), "parquet")
+printf(' mainpingspq = sqlContext.read.load("s3://{}/{}".format(bucket, prefix), "parquet") ')
 
 print("-------------------------------------------------------------------------------")
-print("1. main_summary is available as the DataFrame caled mainpingspq")
+print("1. main_summary can be made available as the DataFrame caled mainpingspq")
 print("2. Save your python objects using saveObject(object), load in r via aswsobj")
 print("3. import mozillametricstools !")
 print("\nView more at: https://github.com/saptarshiguha/mozillametricstools")
