@@ -28,6 +28,8 @@
 # export JAVA_HOME=/etc/alternatives/jre
 
 # this file combines the spark.init.sh, the setupRhipe.sh and the setupPandoc.sh into one file
+/mnt/anaconda2/bin/pip install py4j --upgrade
+/mnt/anaconda2/bin/pip install feather-format
 
 cd ~/
 sudo yum -y install protobuf-2.5.0-10.el7.centos.x86_64.rpm protobuf-compiler-2.5.0-10.el7.centos.x86_64.rpm protobuf-devel-2.5.0-10.el7.centos.x86_64.rpm
