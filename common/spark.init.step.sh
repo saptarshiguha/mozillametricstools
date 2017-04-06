@@ -13,6 +13,8 @@ fi
 echo `ps -o user= -p $$ | awk '{print $1}'`
 ipython profile create
 
+## anaconda is now set from this code
+## https://github.com/mozilla/emr-bootstrap-spark/blob/master/ansible/envs/dev.yml#L6
 $HOME/anaconda2/bin/pip install py4j --upgrade
 $HOME/anaconda2/bin/pip install feather-format
 ## Copy the ipython startup files
