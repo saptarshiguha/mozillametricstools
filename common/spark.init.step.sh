@@ -15,8 +15,8 @@ ipython profile create
 
 ## anaconda is now set from this code
 ## https://github.com/mozilla/emr-bootstrap-spark/blob/master/ansible/envs/dev.yml#L6
-$HOME/anaconda2/bin/pip install py4j --upgrade
-$HOME/anaconda2/bin/pip install feather-format
+/mnt/anaconda2/bin/pip install py4j --upgrade
+/mnt/anaconda2/bin/pip install feather-format
 ## Copy the ipython startup files
 
 mkdir -p ~/.ipython/profile_default/startup/ && cp ~/mozillametricstools/01-mozmetrics-setup.py ~/.ipython/profile_default/startup/
