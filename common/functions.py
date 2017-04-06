@@ -51,3 +51,12 @@ def dateRangeFromTo(start, stop=None, by=None, length=None):
             container.append(( start1+datetime.timedelta(days = x*by)).strftime("%Y-%m-%d"))
     return container
 
+
+def register_udf(func, name, return_type):
+    """ Register a UDF both for as a DataFrame Column and for use in Spark SQL.
+        The Column udf will be assigned to the given name in the global scope,
+        as well as registered with the SQLContext. Specify the UDF's return
+        type as Spark type.
+    """
+    sqlContext.registerFunction(name, func, return_type)
+    globals()[name] = pyspark.sql.functions.udf(func, return_type)
