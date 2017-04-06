@@ -27,6 +27,7 @@
 # export AWS_DEFAULT_REGION=$(curl --retry 5 --silent --connect-timeout 2 http://169.254.169.254/latest/dynamic/instance-identity/document | grep region | awk -F\" '{print $4}')
 # export JAVA_HOME=/etc/alternatives/jre
 
+# this file combines the spark.init.sh, the setupRhipe.sh and the setupPandoc.sh into one file
 
 cd ~/
 sudo yum -y install protobuf-2.5.0-10.el7.centos.x86_64.rpm protobuf-compiler-2.5.0-10.el7.centos.x86_64.rpm protobuf-devel-2.5.0-10.el7.centos.x86_64.rpm
@@ -38,3 +39,9 @@ hadoop dfs -put  /tmp/R.tar.gz /
 yum -y install inotify-tools
 
 sudo yum -y install curl-devel
+
+## do the pandoc link
+sudo yum -y install --nogpgcheck rstudio-server-rhel-1.0.136-x86_64.rpm
+sudo ln -s /usr/lib/rstudio-server/bin/pandoc/pandoc /usr/local/bin
+sudo ln -s /usr/lib/rstudio-server/bin/pandoc/pandoc-citeproc /usr/local/bin
+
