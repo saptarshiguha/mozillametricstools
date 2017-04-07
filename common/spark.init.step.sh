@@ -19,7 +19,6 @@ mkdir -p ~/.ipython/profile_default/startup/ && cp ~/mozillametricstools/01-mozm
 ## anaconda is now set from this code
 ## https://github.com/mozilla/emr-bootstrap-spark/blob/master/ansible/envs/dev.yml#L6
 ## these i always run since they do not install into a home folder
-$HOME/anaconda2/bin/pip install py4j --upgrade
-$HOME/anaconda2/bin/pip install feather-format
+
 
 
