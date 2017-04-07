@@ -58,5 +58,6 @@ def register_udf(sqlc,func, name, return_type):
         as well as registered with the SQLContext. Specify the UDF's return
         type as Spark type.
     """
+    import pyspark
     sqlc.registerFunction(name, func, return_type)
     globals()[name] = pyspark.sql.functions.udf(func, return_type)
