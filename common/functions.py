@@ -4,6 +4,10 @@ import s3
 import re
 
 
+ISO_DATE_FMT = "%Y-%m-%d"
+SUBMISSION_DATE_FMT = "%Y%m%d"
+
+
 def latest_longitudinal_path():
     longit_versions = s3.list_subkeys(s3.S3_PARQUET_BUCKET,
                                       prefix="longitudinal/",
@@ -67,9 +71,6 @@ def register_udf(sqlc, func, name, return_type):
 #-----------------------------------------------------------------------------
 #
 # Date handling.
-
-ISO_DATE_FMT = "%Y-%m-%d"
-SUBMISSION_DATE_FMT = "%Y%m%d"
 
 def submission_date_to_iso(submission_date):
     """ Convert a submission datestring of the form 'yyyymmdd' to an ISO format
