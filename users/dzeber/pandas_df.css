@@ -1,0 +1,36 @@
+
+/* 
+ * Nicer display for pandas DataFrames.
+ * Inspired from http://blog.henryhhammond.com/pandas-formatting-snippets/#prettytables
+ */
+
+/* Lighten the border. */
+.dataframe * {
+    border-color: #c0c0c0 !important;
+}
+
+/* Shading and centering for column headers. */
+.dataframe th{
+    background: #eee;
+    text-align: center;
+}
+
+/* Index columns should be right-aligned. */
+.dataframe tbody th {
+    text-align: right;
+}
+
+/* Shade alternate rows in the table body. */
+.dataframe tbody tr {
+    background: #fff;
+}
+.dataframe tbody tr:nth-child(even) {
+    background: #f5fffa;
+}
+
+/* Alignment and sizing for body cells. */
+.dataframe td {
+    text-align: right;
+    min-width:5em;
+}
+
