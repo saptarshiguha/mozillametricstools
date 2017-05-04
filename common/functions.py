@@ -16,21 +16,6 @@ def latest_longitudinal_path():
     return (s3.S3_LONGITUDINAL_BASE_PATH + max_version, longit_vers_validated)
 
 
-def latest_executive_summary():
-    ## see https://mana.mozilla.org/wiki/display/CLOUDSERVICES/Executive+Summary+Schema
-    import subprocess,re,operator
-    exec_basepath = "s3://telemetry-parquet/executive_stream/v3/"
-    p = subprocess.Popen("aws s3 ls "+exec_basepath,shell=True, stdout=subprocess.PIPE).stdout.readlines()
-    def g(x):
-        if x:
-            return x.groups()[0]
-        else:
-            return '00000000'
-    re1 = re.compile(r""" +PRE (submission_date_s3=\d{8})""",0)
-    b = [g(re1.match(s)) for s  in p]
-    value = max(b)
-    return exec_basepath+value
-
 
 
 def dateRangeFromTo(start, stop=None, by=None, length=None):
