@@ -12,6 +12,8 @@ import pyspark.sql.functions as sparkfun
 #
 # Date handling.
 
+ISO_DATE_FMT = "%Y-%m-%d"
+SUBMISSION_DATE_FMT = "%Y%m%d"
 
 def submission_date_to_iso(submission_date):
     """ Convert a submission datestring of the form 'yyyymmdd' to an ISO format
@@ -22,8 +24,9 @@ def submission_date_to_iso(submission_date):
     if not submission_date:
         return None
     try:
-        as_date = datetime.datetime.strptime(submission_date, "%Y%m%d")
-        return as_date.strftime("%Y-%m-%d")
+        as_date = datetime.datetime.strptime(submission_date,
+                                             SUBMISSION_DATE_FMT)
+        return as_date.strftime(ISO_DATE_FMT)
     except ValueError:
         return None
 
@@ -38,7 +41,7 @@ def pcd_to_iso(pcd):
         return None
     ## Convert the PCD to seconds since the epoch first.    
     as_date = datetime.datetime.utcfromtimestamp(pcd * 86400)
-    pcd_iso = as_date.strftime("%Y-%m-%d")
+    pcd_iso = as_date.strftime(ISO_DATE_FMT)
     if pcd_iso < "2000-01-01":
         return None
     return pcd_iso
@@ -58,11 +61,48 @@ def is_proper_iso_date(date_str):
     """ Check that a string intended to contain an ISO date is interpretable as
         a date.
     """
+    return iso_to_date_obj(date_str) is not None
+
+
+def iso_to_date_obj(date_str):
+    """ Convert an ISO datestring into a datetime.date object.
+
+        The datestring is checked for validity. A valid datestring starts with
+        "yyyy-mm-dd", and optionally continues with more detailed time info.
+        Everything but the initial date portion is ignored.
+
+        Returns a datetime.date object representing the date portion of the
+        string, or None if the datestring is invalid.
+    """
+    if not date_str or len(date_str) < 10:
+        return None
+    date_str = date_str[:10]
     try:
-        date_val = datetime.datetime.strptime(date_str, "%Y-%m-%d")
-        return True
+        return datetime.datetime.strptime(date_str, ISO_DATE_FMT)
     except ValueError:
-        return False
+        return None
+
+
+def format_iso_date(date_str):
+    """ Given an ISO datetime string, checks for validity and converts to a valid
+        ISO date string.
+
+        A valid datestring starts with "yyyy-mm-dd", and optionally continues
+        with more detailed time info. Everything but the initial date portion is
+        ignored.
+
+        Returns a string of the form "yyyy-mm-dd" if the datestring is valid, or
+        None otherwise.
+    """
+    as_date = iso_to_date_obj(date_str)
+    if not as_date:
+        return None
+    return as_date.strftime(ISO_DATE_FMT)
+
+
+def now():
+    """ Human-readable string giving current date and time. """
+    return datetime.datetime.now().ctime()
 
 
 #-----------------------------------------------------------------------------
@@ -157,4 +197,5 @@ def write_schema_to_file(DF, filepath="schema.txt"):
         sys.stdout = f
         DF.printSchema()
     sys.stdout = orig_stdout
+
 
