@@ -1,21 +1,20 @@
 import datetime, time
 import pyspark
+import s3
+import re
+
 
 def latest_longitudinal_path():
-    ## use boto,
-    ## conn = boto.connect_s3(host="s3-us-west-2.amazonaws.com")
-    import subprocess,re,operator
-    longitudinal_basepath = "s3://telemetry-parquet/longitudinal/"
-    p = subprocess.Popen("aws s3 ls "+longitudinal_basepath,shell=True, stdout=subprocess.PIPE).stdout.readlines()
-    def g(x):
-        if x:
-            return x.groups()[0]
-        else:
-            return '00000000'
-    re1 = re.compile(r""" +PRE (v\d{8})""",0)
-    b = [g(re1.match(s)) for s  in p]
-    value = max(b)
-    return (longitudinal_basepath+value,b)
+    longit_versions = s3.list_subkeys(s3.S3_PARQUET_BUCKET,
+                                      prefix="longitudinal/",
+                                      last_component_only=True,
+                                      include_contents=False)
+    patt = re.compile(r"v\d{8}")
+    longit_vers_validated = [v if patt.match(v) else "00000000"
+                                 for v in longit_versions]
+    max_version = max(longit_vers_validated)
+    return (s3.S3_LONGITUDINAL_BASE_PATH + max_version, longit_vers_validated)
+
 
 def latest_executive_summary():
     ## see https://mana.mozilla.org/wiki/display/CLOUDSERVICES/Executive+Summary+Schema
