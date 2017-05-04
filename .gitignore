@@ -1,0 +1,29 @@
+
+TODO
+*~
+rhipe-java.log
+.Rhistory
+
+# Mac crap
+.DS_Store
+.Rapp.history	
+
+# Data files
+*.csv
+*.RData
+*.json
+*.gz
+*.txt
+*.feather
+tmp/
+
+# python crap
+*.pyc
+
+# Knitr caching
+*_cache/
+*_files/
+
+# IPython notebook checkpoints
+.ipynb_checkpoints
+*.log
