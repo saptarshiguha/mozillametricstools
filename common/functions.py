@@ -37,11 +37,20 @@ def dateRangeFromTo(start, stop=None, by=None, length=None):
     return container
 
 
-def register_udf(sqlc,func, name, return_type):
+def register_udf(sqlc, func, name, return_type):
     """ Register a UDF both for as a DataFrame Column and for use in Spark SQL.
+
         The Column udf will be assigned to the given name in the global scope,
-        as well as registered with the SQLContext. Specify the UDF's return
-        type as Spark type.
+        as well as registered with the SQLContext (meaning that it can be used
+        in Spark SQL snippets).
+
+        sqlc: the current sqlContext
+        func: the UDF to be registered, which will be applied to each element of
+              a DF Column
+        name: the name to be assigned
+        return_type: the `pyspark.sql.types.DataType` returned by the UDF. This
+                     needs to be specified to ensure schema consistency.
     """
     sqlc.registerFunction(name, func, return_type)
     globals()[name] = pyspark.sql.functions.udf(func, return_type)
+
