@@ -1,4 +1,4 @@
-import datetime, time
+import datetime
 import pyspark
 import s3
 import re

@@ -3,7 +3,6 @@
 Useful functions and utilities for working with Mozilla data in Spark.
 """
 
-import datetime
 import sys
 import pyspark.sql.functions as sparkfun
 
