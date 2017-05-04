@@ -16,23 +16,34 @@ def latest_longitudinal_path():
     return (s3.S3_LONGITUDINAL_BASE_PATH + max_version, longit_vers_validated)
 
 
-def dateRangeFromTo(start, stop=None, by=None, length=None):
-    start1 = datetime.datetime.fromtimestamp(time.mktime( time.strptime(start,"%Y-%m-%d")))
+def dateRangeFromTo(start, stop=None, by=1, length=None, out_fmt=ISO_DATE_FMT):
+    """ Generate a sequence of dates, similarly to seq() in R.
+
+        Either the end date or the desired length of the sequence should be
+        specified (end date takes precedence if both are given).
+
+        Start and stop dates are expected in ISO format.
+        Returns the date sequence as a list of strings in the specified format
+        (defaulting to ISO).
+    """
+    start1 = iso_to_date_obj(start)
+    if not start1:
+        raise ValueError("Invalid 'start' date.")
+
     container = []
-    if by:
-        by = by
-    else:
-        by = 1
     if stop:
-        stop1 = datetime.datetime.fromtimestamp(time.mktime( time.strptime(stop,"%Y-%m-%d")))
+        stop1 = iso_to_date_obj(stop)
+        if not stop1:
+            raise ValueError("Invalid 'stop' date.")
+
         x = start1
         while x < stop1:
-            container.append( x.strftime("%Y-%m-%d"))
-            x = x + datetime.timedelta(days=by)
+            container.append(x)
+            x += datetime.timedelta(days=by)
     elif length:
-        for x in range(0, length):
-            container.append(( start1+datetime.timedelta(days = x*by)).strftime("%Y-%m-%d"))
-    return container
+        container = [start1 + datetime.timedelta(days=x * by)
+                         for x in range(length)]
+    return [d.strftime(out_fmt) for d in container]
 
 
 def register_udf(sqlc, func, name, return_type):
