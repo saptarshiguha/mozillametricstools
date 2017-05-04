@@ -32,8 +32,16 @@ def main_summary_path():
     return S3_MAIN_SUMMARY_BASE_PATH + latest_ms_version + "/"
 
 
-def longitudinal_path():
-    """ Returns the S3 path to the latest `longitudinal` dataset. """
+def longitudinal_path(num_versions_before_latest=0):
+    """ Returns the S3 path to a recent `longitudinal` dataset.
+
+        If 'num_versions_before_latest' is positive, the returned path will
+        correspond to that many versions prior to the latest. This functionality
+        is useful when the latest dataset has some error, easily stepping back
+        to a previous one.
+
+        By default, the latest dataset is returned.
+    """
     longit_versions = list_subkeys(S3_PARQUET_BUCKET,
                                  prefix="longitudinal/",
                                  last_component_only=True,
@@ -41,7 +49,14 @@ def longitudinal_path():
     ## longitudinal version path components are of the form
     ## "v20170422", "v20170429",...
     longit_versions.sort(reverse=True)
-    latest_longit_version = longit_versions[0]
+    num_steps_back = 0
+    if num_versions_before_latest:
+        try:
+            num_steps_back = int(num_versions_before_latest)
+        except ValueError:
+            print("Invalid value for number of versions before latest. " +
+                  "Returning path to latest dataset.")
+    latest_longit_version = longit_versions[num_steps_back]
     return S3_LONGITUDINAL_BASE_PATH + latest_longit_version + "/"
 
 
