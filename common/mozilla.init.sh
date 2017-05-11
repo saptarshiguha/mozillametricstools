@@ -47,3 +47,8 @@ sudo yum -y install --nogpgcheck rstudio-server-rhel-1.0.136-x86_64.rpm
 sudo ln -s /usr/lib/rstudio-server/bin/pandoc/pandoc /usr/local/bin
 sudo ln -s /usr/lib/rstudio-server/bin/pandoc/pandoc-citeproc /usr/local/bin
 
+## for knitron
+pip install ipyparallel 
+
+## for auto downloading new files
+sudo yum -y install inotify-tools
