@@ -2,35 +2,38 @@
 /* 
  * Nicer display for pandas DataFrames.
  * Inspired from http://blog.henryhhammond.com/pandas-formatting-snippets/#prettytables
+ *
+ * Apply styling to any HTML table. Pandas to_html() returns a table with the 
+ * "dataframe" class, but using a Styler returns a table with different classes.
  */
 
 /* Lighten the border. */
-.dataframe * {
+table * {
     border-color: #c0c0c0 !important;
 }
 
 /* Shading and centering for column headers. */
-.dataframe th{
+th{
     background: #eee;
-    text-align: center;
+    text-align: center !important;
 }
 
 /* Index columns should be right-aligned. */
-.dataframe tbody th {
+tbody th {
     text-align: right;
 }
 
 /* Shade alternate rows in the table body. */
-.dataframe tbody tr {
+tbody tr {
     background: #fff;
 }
-.dataframe tbody tr:nth-child(even) {
+tbody tr:nth-child(even) {
     background: #f5fffa;
 }
 
 /* Alignment and sizing for body cells. */
-.dataframe td {
-    text-align: right;
+td {
+    text-align: right !important;
     min-width:5em;
 }
 
