@@ -1,9 +1,9 @@
-
 """
 Utilities for interacting with Mozilla's data S3 buckets.
 """
 
 import boto3
+import os.path
 
 S3_PARQUET_BUCKET = "telemetry-parquet"
 S3_METRICS_BUCKET = "mozilla-metrics"
@@ -71,6 +71,7 @@ def uri_to_bucket_key_pair(s3_uri):
     """ Extracts the bucket and key from a S3 URI.
 
         Returns a tuple of (<bucket>, <key>).
+
         Both will be empty strings if there is no path portion after the
         protocol identifier. The <key> entry will be the empty string if the
         path is of the form "s3://<bucket>/". Also, the <key> entry will retain
@@ -212,4 +213,119 @@ def list_subkeys(bucket_name, prefix="", last_component_only=True,
         key_prefixes = [p.rsplit("/", 1)[-1] for p in key_prefixes]
     
     return key_prefixes
+
+
+def _get_bucket_key_from_args(uri_or_bucket, key=None):
+    """ Extract the (bucket, key) pair represented by the given args and check
+        for validity.
+
+        The (bucket, key) pair can be identified either by a single URI or by
+        separate strings for bucket and key. In the first case, the first arg
+        should be a valid S3 URI, and the second arg should be omitted. In the
+        second case, both args must be used, and the first arg must be a valid
+        bucket name.
+
+        Returns a tuple of (<bucket>, <key>).
+
+        Throws an exception if the given information did not represent valid S3
+        identifiers.
+    """
+    if not isinstance(uri_or_bucket, basestring):
+        raise ValueError("First arg must be a string.")
+    if key and not isinstance(key, basestring):
+        raise ValueError("Key must be a string.")
+
+    if not key:
+        key_given = False
+        ## The first arg should be a proper URI.
+        bucket, key = uri_to_bucket_key(uri_or_bucket)
+    else:
+        key_given = True
+        bucket = uri_or_bucket
+
+    bucket = bucket.strip()
+    key = key.strip()
+    key = key.lstrip("/")
+    if not bucket:
+        err_val = "First arg (bucket name)" if key_given \
+            else "Bucket portion of the URI"
+        raise ValueError("{} cannot be empty.".format(err_val))
+    if not key:
+        err_val = "Key" if key_given else "Key portion of the URI"
+        raise ValueError("{} cannot be empty.".format(err_val))
+
+    ## The bucket should not have the 's3://' prefix and should not contain
+    ## any slashes.
+    if bucket.startswith("s3://"):
+        raise ValueError("The first arg should be the bucket name and " +
+                         "should not start with the 's3://' prefix.")
+    if "/" in bucket:
+        raise ValueError("The bucket does not have a valid name.")
+
+    return bucket, key
+
+
+def s3_download(uri_or_bucket, key=None, local_path=None):
+    """ Download a file from S3.
+
+        The S3 object to download can be identified either by a single URI or
+        by a (bucket, key) pair. In the second case, the first two args must
+        both be used, and the first arg must be a valid bucket name (not a
+        path).
+
+        If `local_path` is specified, the file will be downloaded to the given
+        path (defaulting to the same filename in the current dir).
+    """
+    if local_path and not isinstance(local_path, basestring):
+        raise ValueError("Local path must be a string.")
+    ## Check S3 identifiers for validity, and let any exceptions
+    ## be raised.
+    bucket, key = _get_bucket_key_from_args(uri_or_bucket, key)
+    ## The key should not end with a slash.
+    if key.endswith("/"):
+        raise ValueError("The key should not end in a slash ('/') " +
+                         "-- this usually indicates a S3 key prefix.")
+    if not local_path:
+        ## Default to the filename at the end of the S3 key.
+        key_filename = key.rsplit("/", 1)[-1]
+        local_path = "./{}".format(key_filename)
+
+    print("Downloading {} to {}".format(join_s3_path(bucket, key), local_path))
+    ## Try the download, and let any exceptions be raised.
+    s3_client.download_file(Bucket=bucket,
+                            Key=key,
+                            Filename=local_path)
+
+
+def s3_upload(local_path, uri_or_bucket, key=None):
+    """ Upload a file to S3.
+
+        The S3 object to upload to can be identified either by a single URI or
+        by a (bucket, key) pair. In the second case, the last two args must
+        both be used, and the first of those must be a valid bucket name (not a
+        path).
+
+        If the key ends in a slash ("/"), this will be interpreted as a prefix,
+        and the local filename will be appended.
+    """
+    if not isinstance(local_path, basestring):
+        raise ValueError("Local path must be a string.")
+    local_filename = os.path.basename(local_path)
+    ## Do a cursory check that the local path points to a file.
+    ## This is convenient because the filename is used later. Any other
+    ## IO errors will be thrown by the S3 Client method.
+    if not local_filename:
+        raise ValueError("Local path must be a file, not a dir.")
+    ## Check S3 identifiers for validity, and let any exceptions
+    ## be raised.
+    bucket, key = _get_bucket_key_from_args(uri_or_bucket, key)
+    ## If the key ends with a slash, interpret it as a prefix.
+    if key.endswith("/"):
+        key = key + local_filename
+
+    print("Uploading {} to {}".format(local_path, join_s3_path(bucket, key)))
+    ## Try the download, and let any exceptions be raised.
+    s3_client.upload_file(Filename=local_path,
+                          Bucket=bucket,
+                          Key=key)
 
