@@ -238,7 +238,7 @@ def _get_bucket_key_from_args(uri_or_bucket, key=None):
     if not key:
         key_given = False
         ## The first arg should be a proper URI.
-        bucket, key = uri_to_bucket_key(uri_or_bucket)
+        bucket, key = uri_to_bucket_key_pair(uri_or_bucket)
     else:
         key_given = True
         bucket = uri_or_bucket
