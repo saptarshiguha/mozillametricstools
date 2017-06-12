@@ -27,3 +27,6 @@ tmp/
 # IPython notebook checkpoints
 .ipynb_checkpoints
 *.log
+
+# Pycharm stuff
+.idea/
