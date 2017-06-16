@@ -68,6 +68,12 @@ def print_count(n, description=None, n_overall=None):
     print(count_str)
 
 
+def show_df(DF, n_rows=10):
+    """ Display the first few rows of the Spark DataFrame as a Pandas DataFrame.
+    """
+    return DF.limit(n_rows).toPandas()
+
+
 def df_show_count_pct(df, n_overall=None, count_col="count",
                       order_by_count=False, show_cum_pct=False):
     """ Format a pandas df for displaying counts.

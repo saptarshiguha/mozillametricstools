@@ -59,7 +59,9 @@ def format_search_count_entry(sc_key, sc_val):
 
 
 def show_df(DF, n_rows=10):
-    """ Display the first few rows of the Spark DataFrame as a Pandas DataFrame.
+    """ Deprecated: this has been moved to display.py.
+
+        Display the first few rows of the Spark DataFrame as a Pandas DataFrame.
     """
     return DF.limit(n_rows).toPandas()
 
