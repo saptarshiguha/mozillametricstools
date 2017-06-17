@@ -53,19 +53,51 @@ def md_print(markdown_text):
     IPDisplay.display(IPDisplay.Markdown(markdown_text))
 
 
-def print_count(n, description=None, n_overall=None):
-    """ Print a count of elements, optionally with a given description.
+def print_count(n, description=None, n_overall=None,
+                                     overall_description=None,
+                                     show_n_overall=True):
+    """ Print a nicely formatted count of elements, optionally with a
+        description, and optionally with a percentage out of a total.
     
-        Optionally supply the number of total elements, in which case
-        the percentage meeting the description will be appended.
+        n: an integer count, which is nicely formatted for printing.
+        description: a string prepended as "<description>: <n>".
+        n_overall: a number of total elements, out of which the given count is
+                   a subset. The percentage will computed and appended as
+                   "<n> out of <n_overall>  (<pct>%)".
+        overall_description: a string describing the overall set of elements,
+                             of which the count is a subset. This is useful when
+                             the overall group is itself a subset of a more
+                             general population.
+        show_n_overall: should the overall count itself be printed, or just
+                        the percentage?
     """
-    count_str = "{:,}".format(n)
-    if description:
-        count_str = "{}:  {}".format(description, count_str)
+    n_fmt = "{:,}".format(n)
     if n_overall:
-        count_str = "{} out of {:,}  ({:.2f}%)".format(
-            count_str, n_overall, n / n_overall * 100)
-    print(count_str)
+        n_overall_fmt = "{:,}".format(n_overall)
+        pct_fmt = "{:.2f}%".format(n / n_overall * 100)
+        if show_n_overall:
+            tot_str = " out of {tot}"
+            if overall_description:
+                tot_str += " {tot_descr}"
+            pct_str = "({pct})"
+        else:
+            tot_str = ""
+            pct_str = "({pct}"
+            if overall_description:
+                pct_str += " of {tot_descr}"
+            pct_str += ")"
+        overall_str = tot_str + "  " + pct_str
+        overall_str = overall_str.format(tot=n_overall_fmt,
+                                         pct=pct_fmt,
+                                         tot_descr=overall_description)
+    else:
+        overall_str = ""
+    final_str = "{n}" + overall_str
+    if description:
+        final_str = "{descr}:  " + final_str
+    final_str_fmt = final_str.format(n=n_fmt,
+                                     descr=description)
+    print(final_str_fmt)
 
 
 def show_df(DF, n_rows=10):
