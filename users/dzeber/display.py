@@ -8,6 +8,7 @@ import IPython.display as IPDisplay
 import os.path
 #from pandas import DataFrame as PDF
 import sys
+import mozillametricstools.common.functions as mmt
 
 PANDAS_CSS_FILE = "pandas_df.css"
 
@@ -51,6 +52,17 @@ def prettify_pandas():
 def md_print(markdown_text):
     """ Print Markdown text so that it renders correctly in the cell output. """
     IPDisplay.display(IPDisplay.Markdown(markdown_text))
+
+
+def time_msg(message):
+    """ Print a message together with the current date and time.
+
+        This is printed in bold using Markdown display, so that it stands out
+        in the notebook output.
+    """
+    msg_str = "{msg}: {time}".format(msg=message, time=mmt.now())
+    msg_str_fmt = "__{}__".format(msg_str)
+    md_print(msg_str_fmt)
 
 
 def print_count(n, description=None, n_overall=None,
