@@ -135,7 +135,7 @@ def iso_to_date_obj(date_str):
         return None
     date_str = date_str[:10]
     try:
-        return datetime.datetime.strptime(date_str, ISO_DATE_FMT)
+        return datetime.datetime.strptime(date_str, ISO_DATE_FMT).date()
     except ValueError:
         return None
 
