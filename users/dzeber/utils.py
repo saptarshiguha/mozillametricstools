@@ -67,6 +67,22 @@ MAIN_SUMMARY_FIREFOX = """
 """
 
 
+def group_counts(DF, cols, count_colname="count", collect=True):
+    """ Compute group sizes over the given grouping columns.
+
+        count_colname: the name for the count column
+        collect: should the resulting table be collected to a Pandas df?
+
+        Returns a Pandas DF if collect is True, otherwise a Spark DF, ordered
+        by grouping values.
+    """
+    cols = _col_arg_as_list(cols)
+    DF_groups = DF.groupBy(cols).count()\
+        .withColumnRenamed("count", count_colname)\
+        .orderBy(cols)
+    return DF_groups.toPandas() if collect else DF_groups
+
+
 def count_distinct(DF, cols):
     """ Count distinct values of the given column or combination of columns.
 
