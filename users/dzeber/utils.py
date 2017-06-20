@@ -6,6 +6,7 @@ Useful functions and utilities for working with Mozilla data in Spark.
 import sys
 import pyspark.sql.functions as sparkfun
 from pyspark.sql import Column as sparkCol
+from pyspark.sql.types import StructType
 
 
 #-----------------------------------------------------------------------------
@@ -165,6 +166,41 @@ def null_to_zero(DF, cols):
         cols: a list of column names
     """
     return replace_null_values(DF, cols, replacement=0)
+
+
+def build_schema_from_spec(schema_spec):
+    """ Build a DataFrame schema from a simplified spec.
+
+        The spec should be a list of elements of the form
+        (<name>, <type>, <nullable?>). The <nullable> entry is
+        optional and defaults to True. The list ordering is preserved
+        as the final column ordering.
+
+        For example:
+        [("client_id", "string", False),
+         ("channel", "string", False),
+         ("os", "string"),
+         ("total_time", "long")]
+
+        Returns a StructType representing the schema.
+    """
+    def field_spec_to_dict(field_spec):
+        fld_sch = {
+            "name": field_spec[0],
+            "type": field_spec[1],
+            "nullable": True,
+            "metadata": {}
+        }
+        if len(field_spec) > 2:
+            fld_sch["nullable"] = field_spec[2]
+        return fld_sch
+
+    schema_flds = [field_spec_to_dict(s) for s in schema_spec]
+    schema_dict = {
+        "fields": schema_flds,
+        "type": "struct"
+    }
+    return StructType.fromJson(schema_dict)
 
 
 def write_schema_to_file(DF, filepath="schema.txt"):
