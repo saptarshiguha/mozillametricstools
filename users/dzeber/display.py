@@ -6,9 +6,13 @@ Utilities for formatting and displaying output in the Jupyter notebook.
 from __future__ import division
 import IPython.display as IPDisplay
 import os.path
-#from pandas import DataFrame as PDF
+from pandas import DataFrame as PDF
+from pandas.formats.style import Styler as PDStyler
+from numpy import isnan as npisnan
 import sys
 import mozillametricstools.common.functions as mmt
+from matplotlib import pltcolors
+from matplotlib.cm import get_cmap as pltcmap
 
 PANDAS_CSS_FILE = "pandas_df.css"
 
@@ -85,6 +89,145 @@ def show_df(DF, n_rows=10):
 #-----------------------------------------------------------------------------
 #
 # Pandas display functions.
+
+
+def replace_null_values(pdf, replacement):
+    """ Replace null values (None or NaN) in a Pandas DataFrame.
+
+        replacement: a single value to replace all null values with, eg. 0, or
+                     a dict mapping column names to the null replacement value
+                     to use in that column.
+
+        Modifies the original df in place, doesn't return anything.
+    """
+    def repl_null(val, repl):
+        try:
+            if npisnan(val):
+                return repl
+        except TypeError:
+            pass
+
+        if val is None:
+            return repl
+        return val
+
+    if not isinstance(replacement, dict):
+        cols = list(pdf.columns)
+        replacement = {coln: replacement for coln in cols}
+    for coln, repl in replacement.iteritems():
+        pdf[coln] = pdf[coln].apply(lambda v: repl_null(v, repl))
+
+
+def fmt_pdf(pdf, format_int=True, format_float=True, float_num_dec=2):
+    """ Apply number formatting to a Pandas DataFrame in preparation
+        for rendering.
+
+        Note that null values in numeric columns cause the column to get treated
+        as a float type.
+
+        pdf: a Pandas DataFrame or Styler object.
+        format_int: should integer formatting (comma-separation) be applied? If
+                    a single column name string or list of column name strings,
+                    apply to these columns. If a boolean, detect integer columns
+                    and apply to these if True.
+        format_float: should float formatting (fixed number of decimal places)
+                      be applied? If a single column name string or list of
+                      column name strings, apply to these columns. If a boolean,
+                      detect float columns and apply to these if True.
+        float_num_dec: number of decimal places to use in float
+                       formatting.
+
+        Returns a Styler object.
+    """
+    if isinstance(pdf, PDStyler):
+        pdf_styler = pdf
+        pdf_data = pdf.data
+    elif isinstance(pdf, PDF):
+        pdf_data = pdf
+        pdf_styler = pdf.style
+    else:
+        raise ValueError("First arg must be either DataFrame or Styler.")
+
+    def cols_from_arg(colarg):
+        """ If explicit columns are given, return them as a list.
+
+            Returns a non-empty list if the input is a non-empty string
+            or list-like, otherwise an empty list.
+        """
+        if colarg and isinstance(colarg, basestring):
+            return [colarg]
+        if colarg and type(colarg) in (list, tuple):
+            return list(colarg)
+        return []
+
+    ## Check if any formats were requested for specific columns.
+    int_cols_arg = cols_from_arg(format_int)
+    float_cols_arg = cols_from_arg(format_float)
+    if int_cols_arg and float_cols_arg and \
+            set(int_cols_arg).intersection(float_cols_arg):
+        raise ValueError("If column names are given for both int and float" +
+                         " formats, they cannot overlap.")
+
+    def cols_to_format(include, exclude=[], numtype=None):
+        """ Return a list of column names for a given number format.
+
+            If specific columns to include were named, use that.
+            Otherwise, detect columns of the given type, if any, and drop any
+            columns listed to exclude.
+        """
+        if include:
+            return include
+        if numtype:
+            cols_for_type = list(pdf_data.select_dtypes(include=[numtype]))
+            return [coln for coln in cols_for_type if coln not in exclude]
+        return []
+
+    ## If specific columns were given for a format, use those.
+    ## Otherwise, if formatting is requested, autodetect but exclude
+    ## any specific columns listed for the other format.
+    int_cols = cols_to_format(int_cols_arg, float_cols_arg,
+                        "int" if format_int else None)
+    float_cols = cols_to_format(float_cols_arg, int_cols_arg,
+                        "float" if format_float else None)
+
+    fmts = {}
+    float_fmt = "{{:.{ndec}f}}".format(ndec=float_num_dec)
+    for intcol in int_cols:
+        fmts[intcol] = "{:,.0f}"
+    for flcol in float_cols:
+        fmts[flcol] = float_fmt
+    return pdf_styler.format(fmts)
+
+
+def pct_heatmap(pdf, adj=30, subset=None):
+    """ Colors numeric cells containing percentages from red to green.
+
+        pdf: a Pandas DataFrame or Styler object.
+        adj: tune how far out into the ends of the color range to go
+             (0 means from extreme to extreme)
+        subset: the list of cols to which this should be applied
+                (applies to all columns if None).
+
+        Returns a DataFrame Styler object.
+    """
+    if isinstance(pdf, PDF):
+        pdf_styler = pdf.style
+    else:
+        pdf_styler = pdf
+    if not isinstance(pdf_styler, PDStyler):
+        raise ValueError("Input must be either a DataFrame or a Styler.")
+
+    norm = pltcolors.Normalize(-adj, 100+adj)
+    def colour_pct_column(col):
+        try:
+            normed = norm(col.values)
+            colmap = pltcmap("RdYlGn")
+            hexcols = [pltcolors.rgb2hex(x) for x in colmap(normed)]
+            return ["background-color: {}".format(color) for color in hexcols]
+        except ValueError:
+            return ["" for x in col.values]
+
+    return pdf_styler.apply(colour_pct_column, subset=subset)
 
 
 def prettify_pandas():
