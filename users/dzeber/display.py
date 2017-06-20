@@ -13,42 +13,6 @@ import mozillametricstools.common.functions as mmt
 PANDAS_CSS_FILE = "pandas_df.css"
 
 
-def prettify_pandas():
-    """ Modify the appearance of Pandas DataFrames when rendered as notebook
-        cell output:
-
-        - add custom CSS to improve the appearance
-        - if the indexing is "trivial" (the possibly reordered default index),
-          attempt to display it as row numbers starting from 1.
-
-        The CSS is read from a file in the package dir. The re-indexing doesn't
-        modify the DataFrame itself. Note that this is done by monkey-patching
-        the pandas module.
-    """
-    ## Update the IPython display method with the custom CSS.
-    try:
-        css_path = os.path.join(os.path.dirname(__file__), PANDAS_CSS_FILE)
-        with open(css_path) as f:
-            css_str = f.read()
-        IPDisplay.display(IPDisplay.HTML("<style>{}</style>".format(css_str)))
-        print("Updated the display CSS.")
-    except IOError:
-        print("Could not set Pandas styles: CSS file not found.")
-
-    try:
-        pandas_module = sys.modules["pandas"]
-        def new_repr_html(self):
-            """ Attempt to reset the index to row numbers, and render
-                the DataFrame as HTML.
-            """
-            return number_rows_if_trivial_index(self).to_html()
-        pandas_module.DataFrame._repr_html_ = new_repr_html
-        print("Patched the pandas module to display with row numbering.")
-    except KeyError:
-        print("Could not set row numbering for display: " +
-              "could not find the pandas module.")
-
-
 def md_print(markdown_text):
     """ Print Markdown text so that it renders correctly in the cell output. """
     IPDisplay.display(IPDisplay.Markdown(markdown_text))
@@ -116,6 +80,47 @@ def show_df(DF, n_rows=10):
     """ Display the first few rows of the Spark DataFrame as a Pandas DataFrame.
     """
     return DF.limit(n_rows).toPandas()
+
+
+#-----------------------------------------------------------------------------
+#
+# Pandas display functions.
+
+
+def prettify_pandas():
+    """ Modify the appearance of Pandas DataFrames when rendered as notebook
+        cell output:
+
+        - add custom CSS to improve the appearance
+        - if the indexing is "trivial" (the possibly reordered default index),
+          attempt to display it as row numbers starting from 1.
+
+        The CSS is read from a file in the package dir. The re-indexing doesn't
+        modify the DataFrame itself. Note that this is done by monkey-patching
+        the pandas module.
+    """
+    ## Update the IPython display method with the custom CSS.
+    try:
+        css_path = os.path.join(os.path.dirname(__file__), PANDAS_CSS_FILE)
+        with open(css_path) as f:
+            css_str = f.read()
+        IPDisplay.display(IPDisplay.HTML("<style>{}</style>".format(css_str)))
+        print("Updated the display CSS.")
+    except IOError:
+        print("Could not set Pandas styles: CSS file not found.")
+
+    try:
+        pandas_module = sys.modules["pandas"]
+        def new_repr_html(self):
+            """ Attempt to reset the index to row numbers, and render
+                the DataFrame as HTML.
+            """
+            return number_rows_if_trivial_index(self).to_html()
+        pandas_module.DataFrame._repr_html_ = new_repr_html
+        print("Patched the pandas module to display with row numbering.")
+    except KeyError:
+        print("Could not set row numbering for display: " +
+              "could not find the pandas module.")
 
 
 def df_show_count_pct(df, n_overall=None, count_col="count",
