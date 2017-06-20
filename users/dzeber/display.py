@@ -11,7 +11,7 @@ from pandas.formats.style import Styler as PDStyler
 from numpy import isnan as npisnan
 import sys
 import mozillametricstools.common.functions as mmt
-from matplotlib import pltcolors
+from matplotlib import colors as pltcolors
 from matplotlib.cm import get_cmap as pltcmap
 
 PANDAS_CSS_FILE = "pandas_df.css"
