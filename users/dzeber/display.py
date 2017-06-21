@@ -230,6 +230,65 @@ def pct_heatmap(pdf, adj=30, subset=None):
     return pdf_styler.apply(colour_pct_column, subset=subset)
 
 
+def pdf_shade_by_group(pdf, group_col, separate_tables=False):
+    """ Shade Pandas DataFrame rows by alternate groups.
+
+        Displays a df with rows shaded according to alternating values of a set
+        of grouping columns, rather than shading alternate rows. Shading
+        colours are currently hard-coded to be the same as in pandas_df.css.
+
+        This function assumes that the df is already sorted by the grouping
+        columns. Sorting is not done here to avoid problems with previously
+        applied styles.
+
+        pdf: a Pandas DataFrame or Styler object.
+        group_col: a column name string of list of column names to group over.
+        separate_tables: should groups be kept in separate dfs? If so, displays
+                         a separate df for each group. Each df will be entirely
+                         shaded the same colour. This may drop previously
+                         applied styles.
+    """
+    if isinstance(pdf, pd.formats.style.Styler):
+        pdf_styler = pdf
+        pdf_data = pdf.data
+    elif isinstance(pdf, pd.DataFrame):
+        pdf_data = pdf
+        pdf_styler = pdf.style
+    else:
+        raise ValueError("First arg must be either a DataFrame or Styler.")
+    if isinstance(group_col, basestring):
+        group_col = [group_col]
+    if type(group_col) not in (list, tuple):
+        raise ValueError("Grouping columns must be specified either as a" +
+                         " single string or list of strings.")
+    grouped = pdf_data.groupby(group_col)
+    group_keys = [key for key, gp in grouped]
+    group_index = dict(zip(group_keys, range(len(group_keys))))
+
+    def group_shading_str(group_key):
+        row_gp_index = group_index[group_key]
+        bgcol = "#f5fffa" if row_gp_index % 2 == 1 else "#fff"
+        return "background-color: {}".format(bgcol)
+
+    if separate_tables:
+        for key, gp_df in grouped:
+            shading_str = group_shading_str(key)
+            group_styler = gp_df.style.apply(
+                lambda row: [shading_str for x in row],
+                axis=1)
+            IPDisplay.display(group_styler)
+    else:
+        def shading_for_row(row):
+            if len(group_col) == 1:
+                row_gp_key = row[group_col[0]]
+            else:
+                row_gp_key = tuple([row[coln] for coln in group_col])
+            shading_str = group_shading_str(row_gp_key)
+            return [shading_str for x in row]
+
+        IPDisplay.display(pdf_styler.apply(shading_for_row, axis=1))
+
+
 def prettify_pandas():
     """ Modify the appearance of Pandas DataFrames when rendered as notebook
         cell output:
