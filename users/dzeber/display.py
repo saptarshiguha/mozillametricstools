@@ -266,37 +266,120 @@ def prettify_pandas():
               "could not find the pandas module.")
 
 
-def df_show_count_pct(df, n_overall=None, count_col="count",
-                      order_by_count=False, show_cum_pct=False):
-    """ Format a pandas df for displaying counts.
+def df_show_count_pct(pdf, n_overall=None, count_col="count",
+                      order_by_count=False, show_cum_pct=False,
+                      pct_col_name=None, fmt=True, pct_num_decimals=2):
+    """ Format a Pandas DataFrame for displaying counts.
     
-        Add percentages and format the numbers for printing.
-        
-        Supply the total count out of which percentages should be
-        computed. If missing, the sum of counts in the table will be used.
-        If a string, it will be taken as a column name containing
-        corresponding group counts.
-        
-        Optionally order the df by decreasing count.
-        
-        Optionally show the cumulative percentage.
+        Add percentages and format the numbers for printing. This does not
+        modify the original df. If percentages are to be computed for multiple
+        columns, the relevant args should be lists all of the same length.
+        Optionally, the DataFrame can be ordered by decreasing count, and
+        cumulative percentages can be added.
+
+        n_overall: the denominator to use in computing the percentage. Supply
+                   a single value or a list with one value for each count
+                   column to compute percentages for, or a single None. The
+                   value can be either:
+                   - a number representing the total
+                   - None, in which case the sum of the corresponding count
+                     column is used (a single None can be given to apply this
+                     to multiple count columns)
+                   - a column name string, in which the count column is divided
+                     by this column element-wise.
+        count_col: the name of the count column for which percentages should be
+                   computed. Supply a single string, or a list of strings to
+                   compute percentages for multiple columns.
+        pct_col_name: the name to use for the new percentage column. Supply a
+                      single string or a list of strings for multiple percentage
+                      columns. If None, each percentage column will be assigned
+                      a default value.
+        order_by_count: should the final df be ordered by decreasing count?
+                        This should be either the string name of a count column
+                        to order by, or a boolean indicating whether the df
+                        should be ordered by the first count column.
+        show_cum_pct: should cumulative percentages be added to the final table?
+                      Note that this depends on the row order. Supply a single
+                      string or a list of strings naming count columns for which
+                      a cumulative percentage should be added, or a boolean
+                      indicating whether cumulative percentages should be added
+                      for all count columns. Default column naming is used.
+        fmt: should display formatting be applied to the numeric columns? If
+             True, returns a Styler object with number formatting applied to any
+             count, n_overall, percentage and cumulative percentage columns.
+        pct_num_decimals: number of decimal places to use for percentages when
+                          applying formatting.
+
+        Returns a DataFrame, or a Styler if formatting has been applied.
     """
+    if isinstance(count_col, basestring):
+        count_col = [count_col]
+    if type(count_col) not in (list, tuple):
+        raise ValueError("Count columns must be specified either as a single" +
+                          " string or list of strings.")
+    colsum = lambda coln: pdf[coln].sum()
     if not n_overall:
-        n_overall = df[count_col].sum()
-    elif isinstance(n_overall, basestring):
-        n_overall = df[n_overall]
-    if order_by_count:
-        df = df.sort_values(count_col, ascending=False)
-    ## Reset row index after sorting to start from 1.
-    #df.reset_index(drop=True, inplace=True)
-    #df.index += 1
-    df["%"] = df[count_col] / n_overall * 100
+        n_overall = map(colsum, count_col)
+    if isinstance(n_overall, basestring) or \
+            type(n_overall) in (int, long, float):
+        n_overall = [n_overall]
+    if type(n_overall) not in (list, tuple):
+        raise ValueError("Overall total must be either None, a single string" +
+                         " or number, or a list of these.")
+    if len(n_overall) != len(count_col):
+        raise ValueError("Number of overall total columns must be the same as" +
+                         " the number of count columns.")
+    cols_n_overall = []
+    for i, val in enumerate(n_overall):
+        if not val:
+            n_overall[i] = colsum(count_col[i])
+        if isinstance(val, basestring):
+            cols_n_overall.append(val)
+            n_overall[i] = pdf[count_col[i]]
+    pct_name = lambda coln: "% {}".format(coln)
+    if not pct_col_name:
+        pct_col_name = map(pct_name, count_col)
+    if isinstance(pct_col_name, basestring):
+        pct_col_name = [pct_col_name]
+    if type(pct_col_name) not in (list, tuple):
+        raise ValueError("Names for percentage columns must be either None, a" +
+                         " single string, or a list of these.")
+    if len(pct_col_name) != len(count_col):
+        raise ValueError("Number of percentage column names must be the same" +
+                         " as the number of count columns.")
+    for i, val in enumerate(pct_col_name):
+        if not val:
+            pct_col_name[i] = pct_name(count_col[i])
+    if order_by_count == True:
+        order_by_count = count_col[0]
+    if isinstance(show_cum_pct, basestring):
+        show_cum_pct = [show_cum_pct]
+    if show_cum_pct == True:
+        show_cum_pct = count_col
+
+    if order_by_count and order_by_count in count_col:
+        pdf = pdf.sort_values(order_by_count, ascending=False)
+    else:
+        pdf = pdf.copy()
+    for i in range(len(count_col)):
+        pdf[pct_col_name[i]] = pdf[count_col[i]] / n_overall[i] * 100
+    cols_cum = []
     if show_cum_pct:
-        df["cum %"] = df[count_col].cumsum() / n_overall * 100
-        df["cum %"] = df["cum %"].map("{:.2f}".format)
-    df[count_col] = df[count_col].map("{:,}".format)
-    df["%"] = df["%"].map("{:.2f}".format)
-    return df
+        for cumcol in show_cum_pct:
+            try:
+                cumcol_index = count_col.index(cumcol)
+            except ValueError:
+                continue
+            cumcol_name = "cum {}".format(pct_col_name[cumcol_index])
+            cumcol_ntot = n_overall[cumcol_index]
+            pdf[cumcol_name] = pdf[cumcol].cumsum() / cumcol_ntot * 100
+            cols_cum.append(cumcol_name)
+    if not fmt:
+        return pdf
+    return fmt_pdf(pdf,
+                  format_int=count_col + cols_n_overall,
+                  format_float=pct_col_name + cols_cum,
+                  float_num_dec=pct_num_decimals)
 
 
 def df_row_numbers_from_one(df):
