@@ -248,10 +248,10 @@ def pdf_shade_by_group(pdf, group_col, separate_tables=False):
                          shaded the same colour. This may drop previously
                          applied styles.
     """
-    if isinstance(pdf, pd.formats.style.Styler):
+    if isinstance(pdf, PDStyler):
         pdf_styler = pdf
         pdf_data = pdf.data
-    elif isinstance(pdf, pd.DataFrame):
+    elif isinstance(pdf, PDF):
         pdf_data = pdf
         pdf_styler = pdf.style
     else:
