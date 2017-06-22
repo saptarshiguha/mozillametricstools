@@ -394,7 +394,7 @@ def df_show_count_pct(pdf, n_overall=None, count_col="count",
             n_overall[i] = colsum(count_col[i])
         if isinstance(val, basestring):
             cols_n_overall.append(val)
-            n_overall[i] = pdf[count_col[i]]
+            n_overall[i] = pdf[val]
     pct_name = lambda coln: "% {}".format(coln)
     if not pct_col_name:
         pct_col_name = map(pct_name, count_col)
