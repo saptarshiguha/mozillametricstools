@@ -67,6 +67,17 @@ MAIN_SUMMARY_FIREFOX = """
 """
 
 
+def renew_cache(DF):
+    """ Cache the given DF, unpersisting first if it is already cached.
+
+        This is useful when rerunning cells involving cached DFs, where
+        calling cache() multiple times can kill the kernel.
+    """
+    if DF.is_cached:
+        DF = DF.unpersist()
+    return DF.cache()
+
+
 def group_counts(DF, cols, count_colname="count", collect=True):
     """ Compute group sizes over the given grouping columns.
 
@@ -133,6 +144,28 @@ def show_df(DF, n_rows=10):
         Display the first few rows of the Spark DataFrame as a Pandas DataFrame.
     """
     return DF.limit(n_rows).toPandas()
+
+
+def dump_to_csv(DF, path, write_mode=None, num_parts=1, compress=True):
+    """ Dump a DataFrame to CSV on S3.
+
+        The CSV can optionally be compressed with gzip and split into part
+        files. CSV writing is handled by DataFrameWriter.csv() and uses the
+        same defaults, except that it always includes a header row. Nulls are
+        encoded as the empty string.
+
+        DF: the DataFrame to output as CSV
+        path: a location on S3
+        write_mode: passed to DataFrameWriter.csv(), defaults to same value
+                    ("error")
+        num_parts: number of parts to split the CSV into
+        compress: should the output CSV files be compressed using gzip?
+    """
+    DF.coalesce(num_parts)\
+        .write.csv(path,
+                   mode=write_mode,
+                   compression="gzip" if compress else None,
+                   header=True)
 
 
 def any_agg_fun(bool_col, agg_colname=None):

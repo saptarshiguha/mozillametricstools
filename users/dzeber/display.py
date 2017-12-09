@@ -33,6 +33,21 @@ def time_msg(message):
     md_print(msg_str_fmt)
 
 
+def validate_condition(descr, code):
+    """ An assertion check wrapped with some formatting.
+
+        Failures don't halt the flow. This is just meant as a visual description
+        as a part of the notebook. The provided code is evaluated and the result
+        is printed next to a description.
+
+        descr: a string describing what the assertion is meant to check
+        code: code to verfiy the assertion. It should generally evaluate to a
+              boolean, although it doesn't have to.
+    """
+    md_print("__Assert__ {descr}:&nbsp;&nbsp; `{result}`".format(
+        descr=descr, result=code))
+
+
 def print_count(n, description=None, n_overall=None,
                                      overall_description=None,
                                      show_n_overall=True):
