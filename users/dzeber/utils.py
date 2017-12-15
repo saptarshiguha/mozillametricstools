@@ -1,70 +1,13 @@
 
 """
-Useful functions and utilities for working with Mozilla data in Spark.
+Useful functions and utilities for working with Spark DataFrames.
 """
 
 import sys
 import pyspark.sql.functions as sparkfun
 from pyspark.sql import Column as sparkCol
 from pyspark.sql.types import StructType
-
-
-#-----------------------------------------------------------------------------
-#
-# Telemetry data handling.
-
-
-def parse_search_count_key(sc_key):
-    """ Parse out search engine and SAP from a search count key.
-    
-        The search count key is of the form `<engine>.<sap>`.
-
-        Returns None if the key was invalid, otherwise a dict with keys
-        ["engine", "sap"].
-    """
-    ## Split the source and engine from the key.
-    if "." not in sc_key:
-        ## Shouldn't happen.
-        return None
-    
-    ## The search engine identifier may itself contain "."s.
-    ## However, the SAP shouldn't.
-    engine, sap = sc_key.rsplit(".", 1)
-    return {
-        "engine": engine,
-        "sap": sap
-    }
-
-
-def format_search_count_entry(sc_key, sc_val):
-    """ Parse out search engine, SAP, count from a single keyed entry
-        in the SEARCH_COUNTS histogram.
-
-        - `sc_key`: the keyedHistogram key (of the form `<engine>.<sap>`).
-        - `sc_val`: the corresponding count histogram.
-        
-        Returns a dict with keys ["engine", "sap", "count"], or None if the
-        key was invalid.
-    """
-    parsed_sc = parse_search_count_key(sc_key)
-    if not parsed_sc:
-        return None
-    ## Number of searches is the histogram total.
-    parsed_sc["count"] = sc_val.get("sum", 0)
-    return parsed_sc
-
-
-#-----------------------------------------------------------------------------
-#
-# Spark/DataFrame utils.
-
-## SQL WHERE clause to identify rows corresponding to all valid Firefox profiles
-## in main_summary.
-MAIN_SUMMARY_FIREFOX = """
-    vendor = 'Mozilla' AND
-    app_name = 'Firefox' AND
-    client_id is not null
-"""
+from pyspark.sql.window import Window
 
 
 def renew_cache(DF):
@@ -144,6 +87,40 @@ def show_df(DF, n_rows=10):
         Display the first few rows of the Spark DataFrame as a Pandas DataFrame.
     """
     return DF.limit(n_rows).toPandas()
+
+
+def uuid_to_int_ids(DF, uuid_colname):
+    """ Generate a mapping of UUIDs to simple integer IDs.
+
+        Returns a lookup DF with columns
+        (<uuid_colname>, <"short_"uuid_colname>).
+    """
+    int_colname = _new_id_colname(uuid_colname)
+    id_win = Window.orderBy(uuid_colname)
+    ## Add the simple IDs as row numbers.
+    return DF.select(uuid_colname)\
+        .distinct()\
+        .withColumn(int_colname, sparkfun.row_number().over(id_win))
+
+
+def map_uuid_to_int_ids(DF, DF_ids):
+    """ Map a column of UUIDs in a DF to int IDs using an existing mapping.
+
+        This is done using an inner join, meaning that DF rows will be limited
+        to those with IDs appearing in DF_ids, if DF_ids is a subset.
+
+        DF: the DF with a column of UUIDs to convert
+        DF_ids: a DF with two columns: <uuid_colname> and
+                "short_"<uuid_colname>.
+
+        Returns DF with uuid_colname replaced with the numeric IDs.
+    """
+    uuid_colname, int_colname = DF_ids.columns
+    original_cols = DF.columns
+    return DF.join(DF_ids, on=uuid_colname)\
+        .drop(uuid_colname)\
+        .withColumnRenamed(int_colname, uuid_colname)\
+        .select(original_cols)
 
 
 def dump_to_csv(DF, path, write_mode=None, num_parts=1, compress=True):
@@ -272,6 +249,13 @@ def get_col_name(col):
     if not isinstance(col, sparkCol):
         raise ValueError("Arg must be a Column object or string.")
     return col._jc.toString()
+
+
+def _new_id_colname(old_colname):
+    """ The temporary column name to use when mapping IDs using
+        uuid_to_int_ids().
+    """
+    return "short_{}".format(old_colname)
 
 
 def _as_col(colname):

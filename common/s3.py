@@ -146,6 +146,91 @@ def longitudinal_path(num_versions_before_latest=0):
                         trailing_slash=True)
 
 
+def partition_key_paths(base_path, partition_cols, partition_values,
+                                                            check_valid=True):
+    """ Expand all paths corresponding to Parquet partition column values.
+
+        Parquet partitioning writes partition column values as separate S3 keys.
+        To filter on partition column values, it is efficient to read the
+        DataFrame restricting to the corresponding S3 keys.
+
+        Given lists of values for specified partition columns, returns a list
+        of S3 keys corresponding to the Cartesian product of all partition
+        values, with the base DataFrame path prepended. Optionally prunes out
+        any nonexistent keys.
+
+        base_path: the base S3 path for the DataFrame, up to the partition
+                   column portions
+        partition_cols: a list of partition column names (or single string) in
+                        the order they appear in the S3 path
+        partition_values: a list containing, for each partition column name in
+                          partition_cols (in the same order), a list (or single
+                          string) of column values
+        check_valid: check whether each expanded path exists?
+    """
+    if not partition_cols:
+        raise ValueError("No partition columns were specified.")
+    if isinstance(partition_cols, basestring):
+        partition_cols = [partition_cols]
+
+    if not partition_values:
+        raise ValueError("No partition values were specified.")
+    if isinstance(partition_values, basestring):
+        ## A single partition value for a single column.
+        partition_values = [partition_values]
+    if len(partition_cols) != len(partition_values):
+        raise ValueError("Partition values list length must be the same as " +
+                         "the number of partition columns.")
+    for v in partition_values:
+        if not v:
+            raise ValueError("Partition values must be specified for each " +
+                             "column.")
+    partition_values = [[v] if isinstance(v, basestring) else v
+                           for v in partition_values]
+
+    def listprod(x, y):
+        """ Compute the cartesian product of paths by combining segments from
+            two lists.
+        """
+        joined_segments = []
+        for xv in x:
+            combined = [join_s3_path(xv, yv, protocol=False) for yv in y]
+            joined_segments.extend(combined)
+        return joined_segments
+
+    partition_keys = []
+    ## For each partition column and values, generate the corresponding path
+    ## segment strings of the form "<col>=<value>".
+    for i in range(len(partition_cols)):
+        val_strings = ["{col}={val}".format(col=partition_cols[i], val=v)
+                          for v in partition_values[i]]
+        partition_keys.append(val_strings)
+    ## Generate the cartesian product of path segments.
+    partition_paths = reduce(listprod, partition_keys)
+
+    if check_valid:
+        ## Verify that each of these generated paths exists.
+        base_bucket, base_prefix = uri_to_bucket_key_pair(base_path)
+        valid_paths = []
+        for p in partition_paths:
+            full_prefix = join_s3_path(base_prefix, p, protocol=False)
+            try:
+                if list_subkeys(base_bucket, full_prefix):
+                    valid_paths.append(p)
+            except:
+                ## If there is a problem accessing the path, consider it
+                ## invalid.
+                pass
+        if not valid_paths:
+            ## None of the paths were valid.
+            return []
+        partition_paths = valid_paths
+
+    ## Prepend the base path before returning.
+    return [join_s3_path(base_path, p, trailing_slash=True)
+                for p in partition_paths]
+
+
 def list_subkeys(bucket_name, prefix="", last_component_only=True,
                                                     include_contents=False):
     """ List the next-level subkeys (common prefixes) of a bucket, starting
