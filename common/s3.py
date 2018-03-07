@@ -101,19 +101,29 @@ def key_from_uri(s3_uri):
     return uri_to_bucket_key_pair(s3_uri)[1]
 
 
-def main_summary_path():
-    """ Returns the S3 path to the latest version `main_summary` dataset. """
-    ms_versions = list_subkeys(S3_PARQUET_BUCKET,
-                               prefix="main_summary/",
+def dataset_latest_version_path(dataset):
+    """ Returns the S3 path to the latest version of the given
+        derived dataset. """
+    dataset_versions = list_subkeys(S3_PARQUET_BUCKET,
+                               prefix=dataset + "/",
                                last_component_only=True,
                                include_contents=False)
-    ## main_summary version path components are of the form
-    ## "v1", "v2", "v3",...
-    ms_versions.sort(reverse=True)
-    latest_ms_version = ms_versions[0]
-    return join_s3_path(S3_MAIN_SUMMARY_BASE_PATH,
-                        latest_ms_version,
+    if not dataset_versions:
+        raise ValueError("No S3 paths found for the given dataset name.")
+
+    ## version path components are generally of the form "v1", "v2", "v3",...
+    ## We expect them to order lexicographically from oldest to newest.
+    dataset_versions.sort(reverse=True)
+    latest_version = dataset_versions[0]
+    return join_s3_path(S3_PARQUET_PATH,
+                        dataset,
+                        latest_version,
                         trailing_slash=True)
+
+
+def main_summary_path():
+    """ Returns the S3 path to the latest version `main_summary` dataset. """
+    return dataset_latest_version_path("main_summary")
 
 
 def longitudinal_path(num_versions_before_latest=0):

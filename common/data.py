@@ -22,6 +22,55 @@ client_id is not null
 """
 
 
+def filter_df_firefox_base(DF):
+    """ Filter a dataset like main_summary for base valid Firefox profiles.
+
+        Base valid profiles have 'app_name' set to "Firefox" and a non-null
+        'client_id'.
+
+        This expects flat fields and standard naming, like main_summary has,
+        for 'client_id'/'app_name'. Checks 'vendor' field if present.
+
+        Returns the given DataFrame with the filter applied.
+    """
+    DFcols = DF.columns
+    if "client_id" not in DFcols or "app_name" not in DFcols:
+        raise ValueError("The given DataFrame is missing at least one of " +
+                         "'client_id' or 'app_name' columns")
+    filter_expr = "client_id IS NOT NULL AND app_name = 'Firefox'"
+    if "vendor" in DFcols:
+        filter_expr += " AND vendor = 'Mozilla'"
+    return DF.filter(filter_expr)
+
+
+def load_parquet_dataset(spark, dataset_s3_path,
+                            partition_path_components=None, base_filter=False):
+    """ Load a Parquet dataset to a Spark DataFrame.
+
+        spark: the current SparkSession
+        dataset_s3_path: the full base path to the dataset in S3 (including
+                         version number, if applicable).
+        partition_path_components: to pre-filter to specific values of partition
+                                   columns, specify a list of the corresponding
+                                   partition path components (excluding the
+                                   dataset base path). These should generally be
+                                   generated using s3fun.partition_key_paths().
+        base_filter: should the base filter be applied to restrict to valid
+                     Firefox profiles?
+
+        Returns a Spark DataFrame.
+    """
+    DF = spark.read.option("mergeSchema", "true")
+    if partition_path_components:
+        DF = DF.option("basePath", dataset_s3_path)\
+            .parquet(*partition_path_components)
+    else:
+        DF = DF.parquet(dataset_s3_path)
+    if base_filter:
+        DF = filter_df_firefox_base(DF)
+    return DF
+
+
 def load_main_summary(spark, paths=None):
     """ Load main_summary from Parquet to a Spark DataFrame.
 
@@ -33,13 +82,10 @@ def load_main_summary(spark, paths=None):
 
         Returns a Spark DataFrame.
     """
-    if not paths:
-        DF_ms = spark.read.parquet(s3fun.main_summary_path())
-    else:
-        DF_ms = spark.read.option("mergeSchema", "true")\
-            .option("basePath", s3fun.main_summary_path())\
-            .parquet(*paths)
-    return DF_ms.filter(MAIN_SUMMARY_FIREFOX)
+    return load_parquet_dataset(spark,
+                                s3fun.main_summary_path(),
+                                paths,
+                                base_filter=True)
 
 
 def main_summary_partition_paths(start_date=None, end_date=None,
