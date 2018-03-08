@@ -138,7 +138,7 @@ def dump_to_csv(DF, path, write_mode=None, num_parts=1, compress=True):
         num_parts: number of parts to split the CSV into
         compress: should the output CSV files be compressed using gzip?
     """
-    DF.coalesce(num_parts)\
+    DF.repartition(num_parts)\
         .write.csv(path,
                    mode=write_mode,
                    compression="gzip" if compress else None,
