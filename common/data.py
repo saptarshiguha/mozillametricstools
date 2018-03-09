@@ -9,7 +9,7 @@ import mozillametricstools.common.s3 as s3fun
 
 #-----------------------------------------------------------------------------
 #
-# Derived datasets/DataFrames.
+# Spark SQL shortcuts and patterns.
 
 
 ## SQL WHERE clause to identify rows corresponding to all valid Firefox profiles
@@ -20,6 +20,27 @@ vendor = 'Mozilla' AND
 app_name = 'Firefox' AND
 client_id is not null
 """
+
+def iso_date_expr(col):
+    """ SQL expression to convert a date column from yyyymmdd to ISO. """
+    return """
+            concat_ws('-',
+                substring({date_col}, 1, 4),
+                substring({date_col}, 5, 2),
+                substring({date_col}, 7, 2)
+            )
+        """.format(date_col=col)
+
+
+def pcd_expr(col):
+    """ SQL expression to convert PCD from time since epoch to ISO date. """
+    return "from_unixtime({pcd_col} * 24 * 3600, 'yyyy-MM-dd')"\
+        .format(pcd_col=col)
+
+
+#-----------------------------------------------------------------------------
+#
+# Derived datasets/DataFrames.
 
 
 def filter_df_firefox_base(DF):
