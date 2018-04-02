@@ -10,7 +10,6 @@ from pandas import DataFrame as PDF
 from pandas.formats.style import Styler as PDStyler
 from numpy import isnan as npisnan
 import sys
-import mozillametricstools.common.functions as mmt
 from matplotlib import colors as pltcolors
 from matplotlib.cm import get_cmap as pltcmap
 
@@ -99,6 +98,16 @@ def show_df(DF, n_rows=10):
     """ Display the first few rows of the Spark DataFrame as a Pandas DataFrame.
     """
     return DF.limit(n_rows).toPandas()
+
+
+def now():
+    """ Human-readable string giving current date and time. """
+    return datetime.datetime.now().ctime()
+
+
+def today():
+    """ ISO-formatted date string. """
+    return datetime.date.today().isoformat()
 
 
 #-----------------------------------------------------------------------------
