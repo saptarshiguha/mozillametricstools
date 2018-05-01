@@ -27,7 +27,7 @@ def time_msg(message):
         This is printed in bold using Markdown display, so that it stands out
         in the notebook output.
     """
-    msg_str = "{msg}: {time}".format(msg=message, time=mmt.now())
+    msg_str = "{msg}: {time}".format(msg=message, time=now())
     msg_str_fmt = "__{}__".format(msg_str)
     md_print(msg_str_fmt)
 
